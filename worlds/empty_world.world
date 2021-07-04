@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+	<world name="default">
+		<include>
+			<uri>model://sun</uri>
+		</include>
+		<include>
+			<uri>model://ground_plane</uri>
+		</include>
+
+		<physics type='ode'>
+			<max_step_size>0.001</max_step_size>
+			<real_time_factor>1</real_time_factor>
+			<real_time_update_rate>1000</real_time_update_rate>
+			<gravity>0 0 -9.8</gravity>
+		</physics>
+
+		<include>
+			<uri>model://kinect</uri>
+			<static>true</static>
+			<pose>0 0 1 0 0 0</pose>
+
+		</include>
+		<!-- <include>
+			<uri>model://camera1</uri>
+			<static>true</static>			
+			<pose>10 -0.85 0 0 0 0</pose>		
+		</include> -->
+		<include>
+			<uri>model://cricketball</uri>
+			<!-- <static>true</static> -->
+			<pose>3.5 0 2.0 0 0 0</pose>
+			<!-- <plugin name="libhappy_world_plugin1" filename="libhappy_world_plugin1.so"/>  -->
+		</include>
+				
+	</world>
+</sdf>

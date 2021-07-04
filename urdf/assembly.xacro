@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<robot name="assembly" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:include filename="$(find cricball)/urdf/materials.xacro" />
+<xacro:include filename="$(find cricball)/urdf/assembly.trans" />
+<xacro:include filename="$(find cricball)/urdf/assembly.gazebo" />
+<link name="dummy">
+   </link>
+<link name="base_link">
+  <inertial>
+    <origin rpy="0 0 0" xyz="-0.051938368359397434 0.19689424962521151 0.3655730227509547"/>
+    <mass value="861.8943143893492"/>
+    <inertia ixx="97.815129" ixy="-1.205347" ixz="1.258738" iyy="74.989482" iyz="10.595435" izz="44.126236"/>
+  </inertial>
+  <visual>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <geometry>
+      <mesh filename="package://cricball/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver_default"/>
+  </visual>
+  <collision>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <geometry>
+      <mesh filename="package://cricball/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+<joint name="dummy_joint" type="fixed">
+     <parent link="dummy"/>
+     <child link="base_link"/>
+   </joint>
+
+</robot>

@@ -1,0 +1,4 @@
+<launch> 
+    <node pkg="cricball" name="ball_detection1.py" type="ball_detection1" />
+    <node pkg="cricball" name="trajectory.py" type="trajectory" />
+</launch>
