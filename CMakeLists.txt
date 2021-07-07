@@ -40,5 +40,6 @@ catkin_install_python(
   PROGRAMS
   scripts/ball_detection.py
   scripts/ball_detection1.py
+  scripts/trajectory_lsr.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

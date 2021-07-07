@@ -23,6 +23,10 @@
           </sphere>
         </geometry>
         <surface>
+          <bounce>
+            <restitution_coefficient>0.9</restitution_coefficient>
+            <threshold>0.001</threshold>
+          </bounce>
           <contact>
             <!-- Red Pine coefficients for longitudinal axis of the wood
                  according to:
@@ -36,13 +40,13 @@
               <min_depth>0.001</min_depth>
             </ode>
           </contact>
-          <friction>
+          <!-- <friction>
             <torsional>
               <coefficient>1.0</coefficient>
               <use_patch_radius>0</use_patch_radius>
               <surface_radius>0.01</surface_radius>
             </torsional>
-          </friction>
+          </friction> -->
         </surface>
       </collision>
 

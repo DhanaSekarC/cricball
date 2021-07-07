@@ -29,8 +29,8 @@
 		<include>
 			<uri>model://cricketball</uri>
 			<!-- <static>true</static> -->
-			<pose>3.5 0 2.0 0 0 0</pose>
-			<!-- <plugin name="libhappy_world_plugin1" filename="libhappy_world_plugin1.so"/>  -->
+			<pose>3.5 0 0 0 0 0</pose>			
+			<plugin name="libhappy_world_plugin1" filename="libhappy_world_plugin1.so"/> 
 		</include>
 				
 	</world>

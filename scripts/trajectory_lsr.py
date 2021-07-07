@@ -102,7 +102,7 @@ def call_back(msg):
 
 
 def listener():
-	print("lsr traj node initiated")
+	print("trajectory_lsr node initiated")
 	rospy.init_node('trajectory_lsr')
 	coord_sub = rospy.Subscriber('ball_coordinate',PointStamped,call_back)
 	rospy.spin()
