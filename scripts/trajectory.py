@@ -2,7 +2,7 @@
 import rospy
 from geometry_msgs.msg import PointStamped
 import numpy as np
-
+import random
 # index of each variable in the state vector
 iX = 0
 iV = 1
@@ -26,11 +26,9 @@ class KalmanFilter:
         self.cov = np.eye(NUMVARS)
         self.cov[iA][iA] = 0.0
         self.cov[iX][iX] = 0.03
-        self.cov[iV][iV] = 0.001
+        self.cov[iV][iV] = 0.03
 
     def predict(self, t2,register_change=True):
-        # x = F x
-        # P = F P Ft + G Gt a
         dt = t2-self.cur_time
         F = np.eye(NUMVARS)
         F[iX, iV] = dt
@@ -40,7 +38,7 @@ class KalmanFilter:
         new_cov = F.dot(self.cov).dot(F.T)
 
         G = np.zeros((NUMVARS, 1))
-        G[iX] = 0.5 * dt ** 2
+        G[iX] = 0.5*dt*dt
         G[iV] = dt
         G[iA] = 0
         # new_cov += G.dot(G.T) * self._accel_variance#chk this line
@@ -62,6 +60,9 @@ class KalmanFilter:
         S = H.dot(self.cov).dot(H.T) + R
         K = self.cov.dot(H.T).dot(np.linalg.inv(S))
         new_mean = self.mean + K.dot(y)
+
+        print('self mean, k.y:',self.mean,K.dot(y))
+
         new_cov = (np.eye(NUMVARS) - K.dot(H)).dot(self.cov)
 
         self.cov = new_cov
@@ -69,37 +70,15 @@ class KalmanFilter:
 
     def find_time_required(self, fin_x):
 
-        # c1 = self.mean[iX]-fin_x
-        # b1 = self.mean[iV]
-        # a1 = 0.5*self.mean[iA]
+        c1 = self.mean[iX]-fin_x
+        b1 = self.mean[iV]
+        a1 = 0.5*self.mean[iA]
 
-        # t1 = (-b1+(b1*b1-4*a1*c1)**0.5)/(2*a1)
-        # return t1
-
-        l=-3.0
-        r=10.0
-        ans = 0.0
-
-        is_decreasing = (self.mean[iV]<0.0)
-
-        while l<=r:
-            mid = (l+r)/2
-            x_mid = self.predict(self.cur_time+mid,False)[0][iX]
-
-            chk = (x_mid<=fin_x)
-            if is_decreasing:
-                chk = not chk
-            
-            if x_mid == fin_x:
-                return mid            
-            if chk:
-                l=mid+0.0001
-                ans = mid                
-            else:
-                r=mid-0.0001
-
-        # print(ans,t1,self.mean[iX]+self.mean[iV]*ans+0.5*self.mean[iA]*ans*ans,self.mean[iX]+self.mean[iV]*t1+0.5*self.mean[iA]*t1*t1)
-        return ans+self.cur_time
+        if a1>1:
+            t1 = (-b1+(b1*b1-4*a1*c1)**0.5)/(2*a1)
+            return t1+self.cur_time
+        else:            
+            return -c1/b1+self.cur_time
 
 
 ball_coordinates = []
@@ -113,36 +92,35 @@ def call_back(msg):
 
     if len(ball_coordinates)<=2:
         if len(ball_coordinates)<2:
-            return
-        t1 = ball_coordinates[0].header.stamp.secs+(ball_coordinates[0].header.stamp.nsecs/1000000000.0)
-        t2 = ball_coordinates[1].header.stamp.secs+(ball_coordinates[1].header.stamp.nsecs/1000000000.0)
+            return                    
+        t1 = (ball_coordinates[0].header.stamp.secs*1000000000+ball_coordinates[0].header.stamp.nsecs)/1000000000.0
+        t2 = (ball_coordinates[1].header.stamp.secs*1000000000+ball_coordinates[1].header.stamp.nsecs)/1000000000.0
         vx = (ball_coordinates[1].point.x - ball_coordinates[0].point.x)/(t2-t1)
         vy = (ball_coordinates[1].point.y - ball_coordinates[0].point.y)/(t2-t1)
         vz = ( ball_coordinates[1].point.z - ball_coordinates[0].point.z + (4.9*(t2-t1)*(t2-t1)) )/(t2-t1)
-        kfx = KalmanFilter(ball_coordinates[0].point.x,vx,0.0,t1)
-        kfy = KalmanFilter(ball_coordinates[0].point.y,vy,0.0,t1)
-        kfz = KalmanFilter(ball_coordinates[0].point.z,vz,-9.8,t1)
+
+        delta_x = 0.0
+        kfx = KalmanFilter(ball_coordinates[0].point.x+delta_x,vx,0.0,t1)
+        kfy = KalmanFilter(ball_coordinates[0].point.y+delta_x,vy,0.0,t1)
+        kfz = KalmanFilter(ball_coordinates[0].point.z+delta_x,vz,-9.8,t1)
 
         tpred = kfx.find_time_required(1.5)
         print(t2,kfx.predict(tpred,False)[0][iX],kfy.predict(tpred,False)[0][iX],kfz.predict(tpred,False)[0][iX],tpred,kfx.cur_time)
         print(kfx.mean,kfy.mean,kfz.mean)
+        print(' ')
         return 
     
-    tnow = msg.header.stamp.secs+(msg.header.stamp.nsecs/1000000000.0)
-    kfx.predict(tnow,False)
-    kfx.predict(tnow,False)
-    kfx.predict(tnow,False)
+    tnow = (msg.header.stamp.secs*1000000000+msg.header.stamp.nsecs)/1000000000.0
+    kfx.predict(tnow)
+    kfy.predict(tnow)
+    kfz.predict(tnow)
 
-    # kfx.update(msg.point.x,0.02)
-    # kfx.update(msg.point.y,0.02)
-    # kfx.update(msg.point.z,0.02)
-
-    # kfx.cur_time = tnow
-    # kfy.cur_time = tnow
-    # kfz.cur_time = tnow
+    kfx.update(msg.point.x,0.04)
+    kfy.update(msg.point.y,0.04)
+    kfz.update(msg.point.z,0.04)
 
     tpred = kfx.find_time_required(1.5)
-    print(tnow,kfx.predict(tpred,False)[0][iX],kfy.predict(tpred,False)[0][iX],kfz.predict(tpred,False)[0][iX],tpred,kfx.cur_time)
+    print(tnow,[kfx.predict(tpred,False)[0][iX],kfy.predict(tpred,False)[0][iX],kfz.predict(tpred,False)[0][iX]],tpred)
     print(kfx.mean,kfy.mean,kfz.mean)
     print(' ')
 
